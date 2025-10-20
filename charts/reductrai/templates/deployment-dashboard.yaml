@@ -28,6 +28,10 @@ spec:
             - name: http
               containerPort: 80
               protocol: TCP
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
           livenessProbe:
             httpGet:
               path: /
@@ -38,3 +42,7 @@ spec:
               port: http
           resources:
             {{- toYaml .Values.dashboard.resources | nindent 12 }}
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: {{ include "reductrai.fullname" . }}-dashboard-config

@@ -10,7 +10,7 @@ proxy:
   image:
     repository: reductrai/proxy
     tag: latest
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
 
   replicas: 3
 
@@ -163,15 +163,15 @@ monitoring:
 security:
   podSecurityContext:
     runAsNonRoot: true
-    runAsUser: 1000
-    fsGroup: 1000
+    runAsUser: 1001
+    fsGroup: 1001
 
   containerSecurityContext:
     allowPrivilegeEscalation: false
     capabilities:
       drop:
         - ALL
-    readOnlyRootFilesystem: true
+    readOnlyRootFilesystem: false
 
 # Node selector
 nodeSelector: {}
