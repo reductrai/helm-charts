@@ -3,7 +3,7 @@ entries:
   reductrai:
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2025-10-20T09:44:42.040043-04:00"
+    created: "2025-10-20T13:12:37.187876-04:00"
     description: AI SRE Proxy - Full observability at 10% of the cost
     digest: fb8af039385853b86e44f39eebb1967417fa9aeec4352d08d52d574e37224a57
     home: https://reductrai.com
@@ -27,4 +27,4 @@ entries:
     urls:
     - https://reductrai.github.io/helm-charts/reductrai-1.0.0.tgz
     version: 1.0.0
-generated: "2025-10-20T09:44:42.039105-04:00"
+generated: "2025-10-20T13:12:37.187078-04:00"
