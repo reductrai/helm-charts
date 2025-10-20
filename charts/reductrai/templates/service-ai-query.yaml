@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "reductrai.fullname" . }}-ai-query
+  labels:
+    {{- include "reductrai.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ai-query
+spec:
+  type: {{ .Values.aiQuery.service.type }}
+  ports:
+    - port: {{ .Values.aiQuery.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: {{ include "reductrai.name" . }}-ai-query
+    app.kubernetes.io/instance: {{ .Release.Name }}

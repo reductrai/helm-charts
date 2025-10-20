@@ -1,0 +1,194 @@
+# Default values for ReductrAI Helm chart
+
+# License configuration (REQUIRED)
+license:
+  key: ""  # Your ReductrAI license key
+  secretName: ""  # Or reference existing secret
+
+# Proxy configuration
+proxy:
+  image:
+    repository: reductrai/proxy
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  replicas: 3
+
+  service:
+    type: ClusterIP
+    port: 8080
+
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "2000m"
+
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+  compression:
+    enabled: true
+    level: heavy  # light, medium, heavy
+
+# Dashboard configuration
+dashboard:
+  enabled: true
+
+  image:
+    repository: reductrai/dashboard
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  replicas: 2
+
+  service:
+    type: ClusterIP
+    port: 5173
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+
+  ingress:
+    enabled: false
+    className: nginx
+    annotations: {}
+    hosts:
+      - host: reductrai.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+
+# AI Query Service
+aiQuery:
+  enabled: true
+
+  image:
+    repository: reductrai/ai-query
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  replicas: 1
+
+  service:
+    type: ClusterIP
+    port: 8081
+
+  model: "llama2:7b"  # Model to use for queries
+
+  resources:
+    requests:
+      memory: "4Gi"
+      cpu: "2000m"
+    limits:
+      memory: "8Gi"
+      cpu: "4000m"
+
+# Ingress configuration (global)
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+  hosts:
+    - host: reductrai.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: dashboard
+          port: 5173
+        - path: /api
+          pathType: Prefix
+          service: proxy
+          port: 8080
+  tls: []
+
+# Storage configuration
+storage:
+  enabled: true
+  size: 100Gi
+  storageClass: ""  # Leave empty for default
+  accessMode: ReadWriteOnce
+
+# Backend integrations
+backends:
+  datadog:
+    enabled: false
+    apiKey: ""
+    endpoint: "https://api.datadoghq.com"
+
+  newrelic:
+    enabled: false
+    apiKey: ""
+    endpoint: "https://api.newrelic.com"
+
+  prometheus:
+    enabled: false
+    endpoint: ""
+
+  otlp:
+    enabled: false
+    endpoint: ""
+
+# Monitoring
+monitoring:
+  prometheus:
+    enabled: true
+    serviceMonitor:
+      enabled: false  # Enable if using Prometheus Operator
+
+  grafana:
+    enabled: false
+    dashboards:
+      enabled: false
+
+# Security
+security:
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - reductrai-proxy
+          topologyKey: kubernetes.io/hostname

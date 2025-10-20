@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "reductrai.fullname" . }}-ai-query
+  labels:
+    {{- include "reductrai.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ai-query
+spec:
+  replicas: {{ .Values.aiQuery.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "reductrai.name" . }}-ai-query
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "reductrai.name" . }}-ai-query
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: ai-query
+    spec:
+      containers:
+        - name: ai-query
+          image: "{{ .Values.aiQuery.image.repository }}:{{ .Values.aiQuery.image.tag }}"
+          imagePullPolicy: {{ .Values.aiQuery.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8081
+              protocol: TCP
+          env:
+            - name: OLLAMA_HOST
+              value: "http://{{ include "reductrai.fullname" . }}-ollama:11434"
+            - name: AI_QUERY_PORT
+              value: "8081"
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          resources:
+            {{- toYaml .Values.aiQuery.resources | nindent 12 }}
+      volumes:
+        - name: data
+          {{- if .Values.storage.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "reductrai.fullname" . }}-data
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
