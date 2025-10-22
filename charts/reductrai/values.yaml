@@ -37,6 +37,8 @@ proxy:
     enabled: true
     level: heavy  # light, medium, heavy
 
+  env: {}  # map of additional/override environment variables for the proxy container
+
 # Dashboard configuration
 dashboard:
   enabled: true
@@ -102,6 +104,28 @@ aiQuery:
       memory: "8Gi"
       cpu: "4000m"
 
+
+# Ollama model runtime
+ollama:
+  enabled: true
+
+  image:
+    repository: reductrai/ollama
+    # tag: latest
+    # pullPolicy: IfNotPresent
+
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "1000m"
+    limits:
+      memory: "4Gi"
+      cpu: "2000m"
+
+  persistence:
+    enabled: false
+    size: 20Gi
+    storageClass: ""
 # Ingress configuration (global)
 ingress:
   enabled: false
@@ -192,3 +216,5 @@ affinity:
                 values:
                   - reductrai-proxy
           topologyKey: kubernetes.io/hostname
+ollama:
+  enabled: true

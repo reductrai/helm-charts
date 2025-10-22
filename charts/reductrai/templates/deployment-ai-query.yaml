@@ -1,3 +1,10 @@
+{{- if .Values.aiQuery.enabled }}
+{{- $services := (include "reductrai.services" .) | fromJson }}
+{{- $serviceMap := index $services "services" | default dict }}
+{{- $aiShared := index $serviceMap "ai-query" | default dict }}
+{{- $aiEnv := $aiShared.environment | default dict }}
+{{- $overrideEnv := .Values.aiQuery.env | default dict }}
+{{- $skipEnv := dict "OLLAMA_HOST" true "AI_QUERY_PORT" true }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -31,6 +38,17 @@ spec:
               value: "http://{{ include "reductrai.fullname" . }}-ollama:11434"
             - name: AI_QUERY_PORT
               value: "8081"
+{{- $overrideEnv := .Values.aiQuery.env | default dict }}
+            {{- range $name, $cfg := $aiEnv }}
+            {{- if not (hasKey $skipEnv $name) }}
+            {{- $value := $cfg.default }}
+            {{- if hasKey $overrideEnv $name }}
+            {{- $value = index $overrideEnv $name }}
+            {{- end }}
+            - name: {{ $name }}
+              value: "{{ $value }}"
+            {{- end }}
+            {{- end }}
           volumeMounts:
             - name: data
               mountPath: /app/data
@@ -44,3 +62,4 @@ spec:
           {{- else }}
           emptyDir: {}
           {{- end }}
+{{- end }}

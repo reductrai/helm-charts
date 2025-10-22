@@ -31,6 +31,7 @@ ReductrAI is an intelligent proxy that sits between your applications and monito
 
 ### Basic Installation
 
+
 ```bash
 helm install reductrai reductrai/reductrai \
   --set license.key=RF-DEMO-2025
@@ -154,6 +155,21 @@ The following table lists the configurable parameters and their default values.
 | `aiQuery.resources.requests.cpu` | CPU request | `2000m` |
 | `aiQuery.resources.limits.memory` | Memory limit | `8Gi` |
 | `aiQuery.resources.limits.cpu` | CPU limit | `4000m` |
+
+### Ollama Runtime
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `ollama.enabled` | Deploy bundled Ollama runtime | `true` |
+| `ollama.image.repository` | Ollama image repository | `reductrai/ollama` |
+| `ollama.image.tag` | Ollama image tag | `latest` |
+| `ollama.resources.requests.memory` | Memory request | `2Gi` |
+| `ollama.resources.requests.cpu` | CPU request | `1000m` |
+| `ollama.resources.limits.memory` | Memory limit | `4Gi` |
+| `ollama.resources.limits.cpu` | CPU limit | `2000m` |
+| `ollama.persistence.enabled` | Enable PVC for model data | `false` |
+| `ollama.persistence.size` | Ollama PVC size | `20Gi` |
+| `ollama.persistence.storageClass` | Storage class | `` |
 
 ### Storage Configuration
 
@@ -441,3 +457,13 @@ This chart deploys ReductrAI which requires a valid license key.
 
 - Demo license: `RF-DEMO-2025` (for testing only)
 - Production licenses: https://reductrai.com/pricing
+
+### Automated Smoke Test
+
+Run the kind-based smoke test to validate optional components and health checks (requires kind, kubectl, helm, curl, jq):
+
+```bash
+./reductrai-helm/scripts/kind-smoke.sh
+```
+
+The script spins up a temporary kind cluster, installs the chart with all components, exercises health endpoints, then verifies that disabling `dashboard`, `aiQuery`, or `ollama` removes the corresponding deployments before tearing everything down.

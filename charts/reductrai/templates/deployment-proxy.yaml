@@ -13,6 +13,22 @@ spec:
       app.kubernetes.io/name: {{ include "reductrai.name" . }}-proxy
       app.kubernetes.io/instance: {{ .Release.Name }}
   template:
+    {{- $services := (include "reductrai.services" .) | fromJson }}
+    {{- $proxyShared := index $services.services "proxy" | default dict }}
+    {{- $proxyEnv := $proxyShared.environment | default dict }}
+    {{- $skipEnv := dict "REDUCTRAI_LICENSE_KEY" true "DATADOG_API_KEY" true "NEW_RELIC_API_KEY" true }}
+    {{- $envOverrides := dict }}
+    {{- range $k, $v := .Values.proxy.env }}
+    {{- $_ := set $envOverrides $k (printf "%v" $v) }}
+    {{- end }}
+    {{- $_ := set $envOverrides "REDUCTRAI_COMPRESSION" (printf "%t" .Values.proxy.compression.enabled) }}
+    {{- $_ := set $envOverrides "REDUCTRAI_COMPRESSION_LEVEL" .Values.proxy.compression.level }}
+    {{- if .Values.backends.datadog.enabled }}
+    {{- $_ := set $envOverrides "DATADOG_ENDPOINT" .Values.backends.datadog.endpoint }}
+    {{- end }}
+    {{- if .Values.backends.newrelic.enabled }}
+    {{- $_ := set $envOverrides "NEW_RELIC_ENDPOINT" .Values.backends.newrelic.endpoint }}
+    {{- end }}
     metadata:
       labels:
         app.kubernetes.io/name: {{ include "reductrai.name" . }}-proxy
@@ -47,18 +63,12 @@ spec:
                 secretKeyRef:
                   name: {{ include "reductrai.fullname" . }}-license
                   key: license-key
-            - name: REDUCTRAI_COMPRESSION
-              value: "{{ .Values.proxy.compression.enabled }}"
-            - name: REDUCTRAI_COMPRESSION_LEVEL
-              value: "{{ .Values.proxy.compression.level }}"
             {{- if .Values.backends.datadog.enabled }}
             - name: DATADOG_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: {{ include "reductrai.fullname" . }}-backends
                   key: datadog-api-key
-            - name: DATADOG_ENDPOINT
-              value: "{{ .Values.backends.datadog.endpoint }}"
             {{- end }}
             {{- if .Values.backends.newrelic.enabled }}
             - name: NEW_RELIC_API_KEY
@@ -66,8 +76,16 @@ spec:
                 secretKeyRef:
                   name: {{ include "reductrai.fullname" . }}-backends
                   key: newrelic-api-key
-            - name: NEW_RELIC_ENDPOINT
-              value: "{{ .Values.backends.newrelic.endpoint }}"
+            {{- end }}
+            {{- range $name, $cfg := $proxyEnv }}
+            {{- if not (hasKey $skipEnv $name) }}
+            {{- $override := index $envOverrides $name | default "" }}
+            {{- $value := default $cfg.default $override }}
+            {{- if $value }}
+            - name: {{ $name }}
+              value: "{{ $value }}"
+            {{- end }}
+            {{- end }}
             {{- end }}
           livenessProbe:
             httpGet:

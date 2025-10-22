@@ -47,3 +47,10 @@ Selector labels
 app.kubernetes.io/name: {{ include "reductrai.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+Return shared service configuration generated from deploy/config (JSON string).
+*/}}
+{{- define "reductrai.services" -}}
+{{- .Files.Get "files/generated/services.json" | default "{}" -}}
+{{- end }}

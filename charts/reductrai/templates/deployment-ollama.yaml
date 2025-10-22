@@ -1,0 +1,47 @@
+{{- if .Values.ollama.enabled }}
+{{- $ollama := .Values.ollama | default dict }}
+{{- $image := $ollama.image | default dict }}
+{{- $resources := $ollama.resources | default dict }}
+{{- $persistence := $ollama.persistence | default dict }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "reductrai.fullname" . }}-ollama
+  labels:
+    {{- include "reductrai.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ollama
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "reductrai.name" . }}-ollama
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "reductrai.name" . }}-ollama
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: ollama
+    spec:
+      containers:
+        - name: ollama
+          image: "{{ default "reductrai/ollama" $image.repository }}:{{ default "latest" $image.tag }}"
+          imagePullPolicy: {{ default "IfNotPresent" $image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 11434
+              protocol: TCP
+          volumeMounts:
+            - name: ollama-data
+              mountPath: /root/.ollama
+          resources:
+            {{- toYaml $resources | nindent 12 }}
+      volumes:
+        - name: ollama-data
+          {{- if (default false $persistence.enabled) }}
+          persistentVolumeClaim:
+            claimName: {{ include "reductrai.fullname" . }}-ollama
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+{{- end }}

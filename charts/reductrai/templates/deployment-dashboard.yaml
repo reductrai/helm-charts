@@ -1,3 +1,7 @@
+{{- if .Values.dashboard.enabled }}
+{{- $services := (include "reductrai.services" .) | fromJson }}
+{{- $dashShared := index $services.services "dashboard" | default dict }}
+{{- $dashEnv := $dashShared.environment | default dict }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -28,6 +32,11 @@ spec:
             - name: http
               containerPort: 80
               protocol: TCP
+          env:
+            {{- range $name, $cfg := $dashEnv }}
+            - name: {{ $name }}
+              value: "{{ $cfg.default }}"
+            {{- end }}
           volumeMounts:
             - name: nginx-config
               mountPath: /etc/nginx/nginx.conf
@@ -46,3 +55,4 @@ spec:
         - name: nginx-config
           configMap:
             name: {{ include "reductrai.fullname" . }}-dashboard-config
+{{- end }}
