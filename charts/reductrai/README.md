@@ -1,22 +1,36 @@
 # ReductrAI Helm Chart
 
-Official Helm chart for deploying ReductrAI on Kubernetes - the AI SRE Proxy that provides full observability at 10% of the cost.
+Official Helm chart for deploying ReductrAI on Kubernetes - the Universal AI SRE Proxy that provides full observability at 10% of the cost.
+
+**Works with 20+ monitoring tools** — Datadog, Prometheus, New Relic, OpenTelemetry, Dynatrace, and more.
 
 ## TL;DR
 
 ```bash
 helm repo add reductrai https://reductrai.github.io/helm-charts
+
+# Install with Datadog
 helm install reductrai reductrai/reductrai \
   --set license.key=YOUR_LICENSE_KEY \
+  --set backends.datadog.enabled=true \
   --set backends.datadog.apiKey=YOUR_DATADOG_KEY
+
+# Or with Prometheus
+helm install reductrai reductrai/reductrai \
+  --set license.key=YOUR_LICENSE_KEY \
+  --set backends.prometheus.enabled=true \
+  --set backends.prometheus.endpoint=http://prometheus:9090
+
+# Or with New Relic, OpenTelemetry, etc.
 ```
 
 ## Introduction
 
-ReductrAI is an intelligent proxy that sits between your applications and monitoring services (Datadog, New Relic, Prometheus, etc.). It:
+ReductrAI is a universal intelligent proxy that sits between your applications and ANY monitoring service. It:
 
+- **Works with 20+ monitoring tools** — Auto-detects all formats (Datadog, Prometheus, New Relic, OpenTelemetry, CloudWatch, InfluxDB, StatsD, Splunk, Dynatrace, AppDynamics, and more)
 - **Stores 100% of data locally** (compressed at 89% ratio)
-- **Forwards 10% sampled data** to expensive monitoring services
+- **Forwards 10% sampled data** to your monitoring service
 - **Reduces monitoring costs by 90%** while maintaining full visibility
 - **Provides AI-powered queries** against the complete dataset
 
@@ -37,13 +51,34 @@ helm install reductrai reductrai/reductrai \
   --set license.key=RF-DEMO-2025
 ```
 
-### With Datadog Integration
+### With Monitoring Tool Integration
+
+Works with ANY monitoring tool — just enable your backend:
 
 ```bash
+# Datadog
 helm install reductrai reductrai/reductrai \
   --set license.key=RF-DEMO-2025 \
   --set backends.datadog.enabled=true \
   --set backends.datadog.apiKey=YOUR_DATADOG_KEY
+
+# Prometheus
+helm install reductrai reductrai/reductrai \
+  --set license.key=RF-DEMO-2025 \
+  --set backends.prometheus.enabled=true \
+  --set backends.prometheus.endpoint=http://prometheus:9090
+
+# New Relic
+helm install reductrai reductrai/reductrai \
+  --set license.key=RF-DEMO-2025 \
+  --set backends.newrelic.enabled=true \
+  --set backends.newrelic.apiKey=YOUR_NEWRELIC_KEY
+
+# OpenTelemetry
+helm install reductrai reductrai/reductrai \
+  --set license.key=RF-DEMO-2025 \
+  --set backends.otlp.enabled=true \
+  --set backends.otlp.endpoint=http://otel-collector:4318
 ```
 
 ### With Custom Values File
@@ -61,25 +96,22 @@ proxy:
     minReplicas: 3
     maxReplicas: 10
 
+aiQuery:
+  enabled: true  # Enable for AI-powered natural language queries
+
+ollama:
+  enabled: true  # LLM runtime for AI queries
+
 storage:
   size: 500Gi
   storageClass: fast-ssd
 
 backends:
+  # Enable your monitoring tool
   datadog:
     enabled: true
     apiKey: YOUR_DATADOG_KEY
-
-ingress:
-  enabled: true
-  className: nginx
-  hosts:
-    - host: reductrai.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-          service: dashboard
-          port: 5173
+  # Or use prometheus, newrelic, otlp, etc.
 EOF
 
 helm install reductrai reductrai/reductrai -f custom-values.yaml

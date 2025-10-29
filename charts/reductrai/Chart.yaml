@@ -1,18 +1,22 @@
 apiVersion: v2
 name: reductrai
-description: AI SRE Proxy - Full observability at 10% of the cost
+description: Universal AI SRE Proxy - Works with 20+ monitoring tools. Full observability at 10% of the cost.
 type: application
-version: 1.0.0
-appVersion: "1.0.0"
+version: 2.0.0
+appVersion: "2.0.0"
 keywords:
   - monitoring
   - observability
   - proxy
+  - universal
   - datadog
-  - newrelic
   - prometheus
+  - newrelic
+  - opentelemetry
+  - dynatrace
   - cost-reduction
   - ai
+  - compression
 home: https://reductrai.com
 sources:
   - https://github.com/reductrai/reductrai-helm

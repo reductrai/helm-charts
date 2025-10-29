@@ -39,46 +39,6 @@ proxy:
 
   env: {}  # map of additional/override environment variables for the proxy container
 
-# Dashboard configuration
-dashboard:
-  enabled: true
-
-  image:
-    repository: reductrai/dashboard
-    tag: latest
-    pullPolicy: IfNotPresent
-
-  replicas: 2
-
-  service:
-    type: ClusterIP
-    port: 5173
-
-  resources:
-    requests:
-      memory: "256Mi"
-      cpu: "250m"
-    limits:
-      memory: "512Mi"
-      cpu: "500m"
-
-  autoscaling:
-    enabled: false
-    minReplicas: 2
-    maxReplicas: 5
-    targetCPUUtilizationPercentage: 70
-
-  ingress:
-    enabled: false
-    className: nginx
-    annotations: {}
-    hosts:
-      - host: reductrai.example.com
-        paths:
-          - path: /
-            pathType: Prefix
-    tls: []
-
 # AI Query Service
 aiQuery:
   enabled: true
@@ -126,23 +86,6 @@ ollama:
     enabled: false
     size: 20Gi
     storageClass: ""
-# Ingress configuration (global)
-ingress:
-  enabled: false
-  className: nginx
-  annotations: {}
-  hosts:
-    - host: reductrai.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-          service: dashboard
-          port: 5173
-        - path: /api
-          pathType: Prefix
-          service: proxy
-          port: 8080
-  tls: []
 
 # Storage configuration
 storage:
@@ -216,5 +159,3 @@ affinity:
                 values:
                   - reductrai-proxy
           topologyKey: kubernetes.io/hostname
-ollama:
-  enabled: true
